@@ -1,0 +1,91 @@
+Install redis CLI: [One time work]
+brew install redis
+
+Run the redis server locally
+    brew services start redis
+    SUBSCRIBE ws-chan-user-a0j0e7t
+        now you will also get messages from redis pub/sub
+
+ Stop the redis server after your testing:
+brew services stop redis
+
+
+
+
+
+
+Que-Ans:
+1. What we can save in webSocketSession.getAttributes():
+WebSocketSession.getAttributes() returns a Map<String, Object> that can be used to store metadata
+related to a session. Think of it as a per-session context.
+
+ ✅ You can store:
+    userId
+    sessionKey (UUID or combination of instance + sessionId)
+    loginTime
+    authToken (if needed for short-lived sessions)
+    Any custom info needed for identification or filtering
+
+    These attributes are stored only in memory for the current session (not shared across pods).
+
+
+
+2. We are only saving the sessionKey in redis cache and against that session what are the sessions are
+maintained in Map. Now what will happen in multiple pods in distributed env. In distributed env. we will get
+all sessionKeys for the userId from redis, but we may not get all sessions. Because one pod have its own
+copy of sessions Map.
+
+🔁 Architecture Recap:
+Each pod maintains its own in-memory Map<String, WebSocketSession>.
+
+All pods share Redis, where:
+
+    Key = ws:sessions:{userId}
+    Value = Set of session keys like pod1:abc123, pod2:xyz789, etc.
+            sessionKey = instanceId + ":" + webSocketSession.getId();
+
+🔥 Problem: Partial Session Visibility
+In distributed setup:
+If Pod A wants to send message to user U, it reads Redis:
+Gets all session keys (e.g., [pod1:s1, pod2:s2])
+
+It can only send to sessions it has in its own local Map (e.g., pod1:s1).
+The other sessions (e.g., pod2:s2) are not accessible in Pod A's memory.
+
+✅ Solution: Redis Pub/Sub
+That’s why we use Redis Pub/Sub.
+Each Pod subscribes to a topic like ws-chan-user-{userId}.
+
+When you want to send a message to a user:
+Your REST controller publishes message to that Redis channel.
+All pods receive it and call sendToUser(userId, message).
+Each pod sends only to the sessions it owns locally.
+
+
+
+3. How it will know it needs to dispatch message to WsHandler.onMessageFromRedis.
+
+RedisMessageListenerContainer:
+A Spring-managed bean that listens to Redis Pub/Sub messages.
+MessageListenerAdapter(handler, "onMessageFromRedis"):
+Tells Spring to invoke handler.onMessageFromRedis() whenever a message is received.
+
+PatternTopic("ws-chan-user-*"):
+Subscribes to all channels matching this pattern.
+
+✅ When a message is published to ws-chan-user-123, Redis sends it to all subscribers,
+and Spring invokes WsHandler.onMessageFromRedis(...).
+
+
+4. How this Message message, knew about
+    channel
+    and payload
+
+Method	What it does
+message.getChannel()	Returns the channel name as byte[]
+message.getBody()	Returns the message payload as byte[]
+
+You're converting the byte arrays to strings to:
+Extract the userId from the channel name.
+Use the payload (actual message) to send to the appropriate WebSocket sessions.
+
