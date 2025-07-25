@@ -11,6 +11,11 @@ brew services stop redis
 
 
 
+Add this in VM args:
+    -Dserver.port=8096
+    -Dspring.redis.port=6379
+
+
 
 
 
