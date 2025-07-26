@@ -94,3 +94,18 @@ You're converting the byte arrays to strings to:
 Extract the userId from the channel name.
 Use the payload (actual message) to send to the appropriate WebSocket sessions.
 
+
+
+
+Test:
+
+1.
+Start index.html
+
+
+2.
+curl -X 'POST' \
+  'http://localhost:8096/jairath/web-sockets/send?userId=a0j0e7t&message=completed' \
+  -H 'accept: */*' \
+  -d ''
+

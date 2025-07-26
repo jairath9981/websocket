@@ -30,16 +30,6 @@
 
     </properties>
 
-    <distributionManagement>
-        <repository>
-            <id>proximity</id>
-            <url>https://repository.walmart.com/content/repositories/pangaea_releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>proximity</id>
-            <url>https://repository.walmart.com/content/repositories/pangaea_snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 
     <dependencies>
@@ -69,35 +59,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Strati dependency -->
-        <dependency>
-            <groupId>io.strati.tunr.utils</groupId>
-            <artifactId>strati-af-tunr-utils-client-spring</artifactId>
-            <version>${ccm.client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.strati</groupId>
-            <artifactId>strati-af-txn-marking-springboot-client</artifactId>
-            <version>${txn.marking.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.strati</groupId>
-            <artifactId>strati-af-txn-marking-springboot-server</artifactId>
-            <version>${txn.marking.version}</version>
-        </dependency>
-        <!-- MUST HAVE: Required Strati dependency -->
-        <dependency>
-            <groupId>io.strati</groupId>
-            <artifactId>strati-af-javase-bom</artifactId>
-            <version>${strati.boms.version}</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>io.strati</groupId>
-            <artifactId>strati-af-spring4-bom</artifactId>
-            <version>${strati.boms.version}</version>
-            <type>pom</type>
-        </dependency>
 
         <!-- lombok dependency -->
         <dependency>
